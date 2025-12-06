@@ -84,6 +84,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.42</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
             <groupId>com.sysnormal.libs.commons</groupId>
             <artifactId>default-data-swap</artifactId>
             <version>0.0.1-SNAPSHOT</version>

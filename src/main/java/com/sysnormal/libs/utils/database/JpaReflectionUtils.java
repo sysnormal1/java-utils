@@ -1,11 +1,17 @@
 package com.sysnormal.libs.utils.database;
 
 import com.sysnormal.libs.utils.ReflectionUtils;
+import com.sysnormal.libs.utils.network.http.response.ResponseUtils;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Optional;
 
 /**
@@ -73,5 +79,35 @@ public final class JpaReflectionUtils {
                 : entityType.getSimpleName();
     }
 
+
+    public static Field getIdField(Class<?> entityType) {
+        Field result = null;
+        ArrayList<Field> fields = ReflectionUtils.getAllFields(entityType);
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(Id.class) || field.isAnnotationPresent(EmbeddedId.class)) {
+                field.setAccessible(true);
+                result = field;
+                break;
+            }
+        }
+        return result;
+    }
+
+    public static String resolveIdFieldName(Class<?> entityType) {
+        String result = null;
+        Field idField = JpaReflectionUtils.getIdField(entityType);
+
+        if (idField != null) {
+            Column columnAnnotation = idField.getAnnotation(Column.class);
+            if (columnAnnotation != null) {
+                result = columnAnnotation.name();
+            }
+            if (!StringUtils.hasText(result)) {
+                result = idField.getName();
+            }
+        }
+
+        return result;
+    }
 
 }
