@@ -7,6 +7,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
 
+/**
+ * Response utils
+ *
+ * @author Alencar
+ * @version 1.0.0
+ */
 public class ResponseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
