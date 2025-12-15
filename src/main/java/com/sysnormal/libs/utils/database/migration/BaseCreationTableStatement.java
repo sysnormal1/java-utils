@@ -28,6 +28,39 @@ public abstract class BaseCreationTableStatement {
 
     private static final Logger logger = LoggerFactory.getLogger(BaseCreationTableStatement.class);
 
+    @Getter
+    @Setter
+    public class TableAccessoryObject {
+        private String tableName = null;
+        private String name = null;
+        private String creationQuery = null;
+        public TableAccessoryObject(){};
+        public TableAccessoryObject(String tableName, String name, String creationQuery) {
+            this.tableName = tableName;
+            this.name = name;
+            this.creationQuery = creationQuery;
+        }
+    }
+
+    public class Constraint extends TableAccessoryObject{
+        public Constraint(){};
+        public Constraint(String tableName, String name, String creationQuery) {
+            super(tableName, name, creationQuery);
+        }
+    };
+    public class ForeignKey extends TableAccessoryObject{
+        public ForeignKey(){};
+        public ForeignKey(String tableName, String name, String creationQuery) {
+            super(tableName, name, creationQuery);
+        }
+    };
+    public class Index extends TableAccessoryObject{
+        public Index(){};
+        public Index(String tableName, String name, String creationQuery) {
+            super(tableName, name, creationQuery);
+        }
+    };
+
     protected PersistentClass persistentEntity;
     protected Metadata metadata;
     protected Class<?> clazz;
@@ -36,9 +69,9 @@ public abstract class BaseCreationTableStatement {
     protected ArrayList<Field> clazzFields = new ArrayList<Field>();
     protected List<Column> tableColumns = new ArrayList<Column>();
     protected String createTable;
-    protected ArrayList<String> addUniqueConstraints = new ArrayList<String>();
-    protected ArrayList<String> addForeignKeys = new ArrayList<String>();
-    protected ArrayList<String> addIndexes = new ArrayList<String>();
+    protected ArrayList<Constraint> addUniqueConstraints = new ArrayList<Constraint>();
+    protected ArrayList<ForeignKey> addForeignKeys = new ArrayList<ForeignKey>();
+    protected ArrayList<Index> addIndexes = new ArrayList<Index>();
     protected boolean preexists = false;
 
     public BaseCreationTableStatement(PersistentClass persistentEntity, Metadata metadata) {

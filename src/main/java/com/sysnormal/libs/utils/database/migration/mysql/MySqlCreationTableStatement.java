@@ -1,6 +1,7 @@
 package com.sysnormal.libs.utils.database.migration.mysql;
 
 import com.sysnormal.libs.utils.database.JpaReflectionUtils;
+import com.sysnormal.libs.utils.database.MysqlDatabaseUtils;
 import com.sysnormal.libs.utils.database.migration.BaseCreationTableStatement;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -155,7 +156,7 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
                             + """
                             )
                             """;
-                    addUniqueConstraints.add(query);
+                    addUniqueConstraints.add(new Constraint(tableName, entry.getKey(), query));
                 }
             }
         } catch (Exception e) {
@@ -168,8 +169,6 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
     public void buildAddForeignKeyConstraintsStatement() {
         logger.debug("INIT {}.{}",this.getClass().getSimpleName(), "buildAddForeignKeyConstraintsStatement");
         try {
-
-            Map<String, UniqueKey> uniqueKeys = table.getUniqueKeys();
             addForeignKeys = new ArrayList<>();
             for (int i = 0; i < clazzFields.size(); i++) {
                 Field field = clazzFields.get(i);
@@ -180,12 +179,21 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
                     if (entityRefType.isPresent()) {
                         String foreigntableName = JpaReflectionUtils.resolveTableName(entityRefType.get());
                         String foreignColumnName = "id";
-                        String addForeignKey =  "alter table `" + tableName + "` add constraint foreign key (`" + joinColumn.name() + "`) references `" +foreigntableName + "` (`" + foreignColumnName + "`)";
+                        String foreignKeyName = tableName + "_" + joinColumn.name() + "_" + foreigntableName+"_"+foreignColumnName+"_fk";
+
+                        if (foreignKeyName.length() > MysqlDatabaseUtils.MAX_FOREIGN_KEY_NAME_LENGTH) {
+                            foreignKeyName = foreignKeyName.replace("_","");
+                            if (foreignKeyName.length() > MysqlDatabaseUtils.MAX_FOREIGN_KEY_NAME_LENGTH) {
+                                foreignKeyName = foreignKeyName.substring(0,MysqlDatabaseUtils.MAX_FOREIGN_KEY_NAME_LENGTH-3) + "_fk";
+                            }
+                        }
+
+                        String query =  "alter table `" + tableName + "` add constraint `" + foreignKeyName + "` foreign key (`" + joinColumn.name() + "`) references `" +foreigntableName + "` (`" + foreignColumnName + "`)";
                         OnDelete onDelete = field.getAnnotation(OnDelete.class);
                         if (onDelete != null) {
-                            addForeignKey += " on delete " + onDelete.action().toSqlString();
+                            query += " on delete " + onDelete.action().toSqlString();
                         }
-                        addForeignKeys.add(addForeignKey);
+                        addForeignKeys.add(new ForeignKey(tableName, foreignKeyName, query));
                     }
                 }
             }
@@ -200,10 +208,10 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
     public void buildAddIndexesStatement() {
         logger.debug("INIT {}.{}",this.getClass().getSimpleName(), "buildAddIndexesStatement");
         try {
-            Map<String, Index> indexes = table.getIndexes();
+            Map<String, org.hibernate.mapping.Index> indexes = table.getIndexes();
             addIndexes = new ArrayList<>();
             if (indexes.size() > 0) {
-                for (Map.Entry<String, Index> entry : indexes.entrySet()) {
+                for (Map.Entry<String, org.hibernate.mapping.Index> entry : indexes.entrySet()) {
                     String query = """
                             create index `""" + entry.getValue().getName() + "` on `"+tableName+"`(" + """
                             """ + entry.getValue().getColumns().stream()
@@ -212,7 +220,7 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
                             + """
                             )
                             """;
-                    addUniqueConstraints.add(query);
+                    addIndexes.add(new Index(tableName,entry.getValue().getName(),query));
                 }
             }
         } catch (Exception e) {
@@ -220,4 +228,7 @@ public class MySqlCreationTableStatement extends BaseCreationTableStatement {
         }
         logger.debug("END {}.{}",this.getClass().getSimpleName(), "buildAddIndexesStatement");
     }
+
+
+
 }

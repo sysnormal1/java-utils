@@ -1,7 +1,6 @@
 package com.sysnormal.libs.utils.database;
 
 import com.sysnormal.libs.utils.ReflectionUtils;
-import com.sysnormal.libs.utils.network.http.response.ResponseUtils;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Id;
