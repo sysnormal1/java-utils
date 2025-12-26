@@ -1,17 +1,6 @@
-# DefaultDataSwap
+# Utils
 
-This class is part of the Java project and is responsible for data swapping functionality.
-
-## 📄 Overview
-
-The `DefaultDataSwap` class provides mechanisms to exchange, serialize, or transform data objects in a flexible way.  
-It may serve as a default implementation for data interchange layers or utility components.
-
-## ⚙️ Key Features
-
-- Default implementation for data swapping logic
-- Supports flexible input/output data handling
-- Integrates easily with other modules
+This package contains utilities.
 
 ## 📦 Maven Dependency
 
@@ -25,24 +14,12 @@ Add the dependency below to your `pom.xml`:
 </dependency>
 ```
 
-## 🧩 Example Usage
-
-```java
-// Example usage
-DefaultDataSwap swapper = new DefaultDataSwap();
-swapper.data = data;
-swapper.succes = true;
-return swapper;
-```
-
 ## 🧬 Clone the repository
 
 To get started locally:
 
 ```bash
-git clone https://github.com/sysnormal1/default-data-swap.git
-cd default-data-swap
-mvn install
+git clone https://github.com/sysnormal1/java-utils.git
 ```
 
 ## 🔧 Build and Local Test
@@ -65,5 +42,3 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 GitHub: [@aalencarvz1](https://github.com/aalencarvz1)
 
 ---
-
-> 🔗 Published on [Maven Central (Sonatype)](https://central.sonatype.com/artifact/com.sysnormal.libs/utils)
