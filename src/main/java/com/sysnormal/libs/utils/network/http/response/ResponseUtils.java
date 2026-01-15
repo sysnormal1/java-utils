@@ -1,11 +1,11 @@
 package com.sysnormal.libs.utils.network.http.response;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sysnormal.libs.commons.DefaultDataSwap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Response utils
@@ -17,6 +17,9 @@ public class ResponseUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseUtils.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    /*@Autowired
+    ObjectMapper objectMapper;*/
 
     public static DefaultDataSwap handleResponse(ClientRawResponseWrapper response){
         logger.debug("INIT {}.{}",ResponseUtils.class.getSimpleName(), "handleResponse");
