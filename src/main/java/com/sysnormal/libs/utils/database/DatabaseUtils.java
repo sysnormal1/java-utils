@@ -46,28 +46,31 @@ public abstract class DatabaseUtils {
             CriteriaBuilder cb
     ) {
         List<Predicate> predicates = new ArrayList<>();
-
-        if (!node.isObject()) {
-            throw new IllegalArgumentException("Where clause must be a JSON object");
-        }
-
-        node.propertyNames().forEach(key -> {
-            JsonNode value = node.get(key);
-
-            switch (key) {
-                case "$and" -> predicates.add(
-                        cb.and(parseLogicalArray(value, root, cb))
-                );
-
-                case "$or" -> predicates.add(
-                        cb.or(parseLogicalArray(value, root, cb))
-                );
-
-                default -> predicates.add(
-                        parseFieldPredicate(key, value, root, cb)
-                );
+        try {
+            if (!node.isObject()) {
+                throw new IllegalArgumentException("Where clause must be a JSON object");
             }
-        });
+
+            node.propertyNames().forEach(key -> {
+                JsonNode value = node.get(key);
+
+                switch (key) {
+                    case "$and", "and", "&" -> predicates.add(
+                            cb.and(parseLogicalArray(value, root, cb))
+                    );
+
+                    case "$or", "or", "|", "||" -> predicates.add(
+                            cb.or(parseLogicalArray(value, root, cb))
+                    );
+
+                    default -> predicates.add(
+                            parseFieldPredicate(key, value, root, cb)
+                    );
+                }
+            });
+        }  catch (Exception e) {
+            e.printStackTrace();
+        }
 
         return cb.and(predicates.toArray(new Predicate[0]));
     }
@@ -93,40 +96,41 @@ public abstract class DatabaseUtils {
             Root<?> root,
             CriteriaBuilder cb
     ) {
-        List<Predicate> predicates = new ArrayList<>();
         Path<?> path = root.get(field);
+
+        // ✅ CASO 1: valor direto → eq implícito
+        if (!operations.isObject()) {
+            return cb.equal(path, parseValue(path, operations));
+        }
+
+        // ✅ CASO 2: objeto com operadores
+        List<Predicate> predicates = new ArrayList<>();
 
         operations.propertyNames().forEach(op -> {
             JsonNode value = operations.get(op);
 
-            //String operator = op.getKey();
-            //JsonNode value = op.getValue();
-
             predicates.add(
                     switch (op) {
-                        case "$eq" -> cb.equal(path, parseValue(path, value));
-                        case "$ne" -> cb.notEqual(path, parseValue(path, value));
-                        case "$like" -> cb.like(
-                                path.as(String.class),
-                                value.asText()
-                        );
-                        case "$gt" -> cb.greaterThan(
+                        case "$eq", "eq", "=" -> cb.equal(path, parseValue(path, value));
+                        case "$ne", "ne", "<>", "!=" -> cb.notEqual(path, parseValue(path, value));
+                        case "$like", "like" -> cb.like(path.as(String.class), value.asText());
+                        case "$gt", "gt", ">" -> cb.greaterThan(
                                 path.as(Comparable.class),
                                 (Comparable) parseValue(path, value)
                         );
-                        case "$gte" -> cb.greaterThanOrEqualTo(
+                        case "$gte", "gte", ">=" -> cb.greaterThanOrEqualTo(
                                 path.as(Comparable.class),
                                 (Comparable) parseValue(path, value)
                         );
-                        case "$lt" -> cb.lessThan(
+                        case "$lt", "lt", "<" -> cb.lessThan(
                                 path.as(Comparable.class),
                                 (Comparable) parseValue(path, value)
                         );
-                        case "$lte" -> cb.lessThanOrEqualTo(
+                        case "$lte", "lte", "<=" -> cb.lessThanOrEqualTo(
                                 path.as(Comparable.class),
                                 (Comparable) parseValue(path, value)
                         );
-                        case "$in" -> {
+                        case "$in", "in" -> {
                             CriteriaBuilder.In<Object> in = cb.in(path);
                             value.forEach(v -> in.value(parseValue(path, v)));
                             yield in;
@@ -140,6 +144,7 @@ public abstract class DatabaseUtils {
 
         return cb.and(predicates.toArray(new Predicate[0]));
     }
+
 
     private static Object parseValue(Path<?> path, JsonNode value) {
         Class<?> javaType = path.getJavaType();
