@@ -55,17 +55,18 @@ public abstract class DatabaseUtils {
                 JsonNode value = node.get(key);
 
                 switch (key) {
-                    case "$and", "and", "&" -> predicates.add(
-                            cb.and(parseLogicalArray(value, root, cb))
-                    );
+                    case "$and", "and", "&" -> {
+                        if (value.isArray() && !value.isEmpty()) {
+                            predicates.add(cb.and(parseLogicalArray(value, root, cb)));
+                        }
+                    }
+                    case "$or", "or", "|", "||" -> {
+                        if (value.isArray() && !value.isEmpty()) {
+                            predicates.add(cb.or(parseLogicalArray(value, root, cb)));
+                        }
+                    }
 
-                    case "$or", "or", "|", "||" -> predicates.add(
-                            cb.or(parseLogicalArray(value, root, cb))
-                    );
-
-                    default -> predicates.add(
-                            parseFieldPredicate(key, value, root, cb)
-                    );
+                    default -> predicates.add(parseFieldPredicate(key, value, root, cb));
                 }
             });
         }  catch (Exception e) {
@@ -90,6 +91,40 @@ public abstract class DatabaseUtils {
         return predicates.toArray(new Predicate[0]);
     }
 
+    private static String normalizeLikeValue(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return "%";
+        }
+
+        boolean startsWithPercent = raw.startsWith("%");
+        boolean endsWithPercent = raw.endsWith("%");
+
+        String core = raw;
+
+        // remove % externos para tratar o conteúdo interno
+        if (startsWithPercent) core = core.substring(1);
+        if (endsWithPercent && core.length() > 0) core = core.substring(0, core.length() - 1);
+
+        // escapa curingas internos
+        core = core
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+
+        StringBuilder result = new StringBuilder();
+
+        if (startsWithPercent) result.append("%");
+        else result.append("%");
+
+        result.append(core);
+
+        if (endsWithPercent) result.append("%");
+        else result.append("%");
+
+        return result.toString();
+    }
+
+
     private static Predicate parseFieldPredicate(
             String field,
             JsonNode operations,
@@ -113,7 +148,7 @@ public abstract class DatabaseUtils {
                     switch (op) {
                         case "$eq", "eq", "=" -> cb.equal(path, parseValue(path, value));
                         case "$ne", "ne", "<>", "!=" -> cb.notEqual(path, parseValue(path, value));
-                        case "$like", "like" -> cb.like(path.as(String.class), value.asText());
+                        case "$like", "like" -> cb.like(path.as(String.class),normalizeLikeValue(value.asText()),'\\');
                         case "$gt", "gt", ">" -> cb.greaterThan(
                                 path.as(Comparable.class),
                                 (Comparable) parseValue(path, value)
