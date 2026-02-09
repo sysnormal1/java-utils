@@ -1,10 +1,13 @@
 package com.sysnormal.libs.utils.database;
 
 
+import com.sysnormal.libs.utils.database.migration.BaseCreationTableStatement;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 import tools.jackson.databind.JsonNode;
@@ -16,7 +19,7 @@ import java.util.List;
 
 public abstract class DatabaseUtils {
 
-
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseUtils.class);
     public abstract boolean indexExists(Connection conn, String tableName, String constraintName) throws SQLException;
 
     public abstract boolean foreignKeyExists(Connection conn,String tableName,String fkName) throws SQLException;
@@ -45,6 +48,7 @@ public abstract class DatabaseUtils {
             Root<?> root,
             CriteriaBuilder cb
     ) {
+        logger.debug("INIT {}.{}",DatabaseUtils.class.getSimpleName(),"buildPredicate");
         List<Predicate> predicates = new ArrayList<>();
         try {
             if (!node.isObject()) {
@@ -72,7 +76,7 @@ public abstract class DatabaseUtils {
         }  catch (Exception e) {
             e.printStackTrace();
         }
-
+        logger.debug("END {}.{}",DatabaseUtils.class.getSimpleName(),"buildPredicate");
         return cb.and(predicates.toArray(new Predicate[0]));
     }
 
