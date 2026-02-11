@@ -25,6 +25,15 @@ public final class TextUtils {
     }
 
     /**
+     * check if text is not null and is not empty
+     * @param text the text to check
+     * @return if text is not null and is not empty
+     */
+    public static boolean hasNotNullText(String text) {
+        return hasText(text) && !text.trim().equalsIgnoreCase("null");
+    }
+
+    /**
      * remove all except last dot from string
      * @param s the string with dots
      * @return the string with only last dot

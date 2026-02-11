@@ -40,7 +40,8 @@ public class ResponseUtils {
             } catch (Exception e) {
                 result.data = response.rawResponse;
             }
-            logger.debug("response {}",result.data);
+            logger.debug("response.success {}, response.httpStatusCode {}, response.message {}", result.success,  result.httpStatusCode, result.message);
+            logger.debug("response.data {}",result.data);
         } catch (Exception e) {
             e.printStackTrace();
             result.setException(e);
