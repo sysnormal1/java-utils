@@ -49,4 +49,8 @@ public class ResponseUtils {
         logger.debug("END {}.{}",ResponseUtils.class.getSimpleName(), "handleResponse");
         return result;
     }
+
+    public static void sendResponse() {
+
+    }
 }
